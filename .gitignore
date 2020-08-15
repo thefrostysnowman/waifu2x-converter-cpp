@@ -42,3 +42,5 @@ runtest
 *.isa
 *.il
 .gdbinit
+*.bc
+*.dylib

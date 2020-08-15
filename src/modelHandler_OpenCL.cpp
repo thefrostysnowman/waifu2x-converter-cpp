@@ -45,15 +45,6 @@
 #include "CL/cl.h"
 #endif
 
-// Support ancient versions of GCC still used in stubborn distros.
-#if defined(__GNUC__) && !__has_include(<filesystem>)
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#else
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
-
 #ifdef __linux
 #include <unistd.h>
 #include <sys/types.h>
@@ -63,6 +54,22 @@ namespace fs = std::filesystem;
 #include <sys/types.h>
 #include <sys/sysctl.h> // KERN_PROC_PATHNAME
 #include <errno.h>
+#endif
+
+#if ((defined __linux) && !(defined __ANDROID__)) || defined(_WIN32) || defined(KERN_PROC_PATHNAME)
+#define GENERATE_BINARY
+#endif
+
+// Include and alias correct filesystem only when generating binary cache
+#ifdef GENERATE_BINARY
+// Support ancient versions of GCC still used in stubborn distros.
+#if defined(__GNUC__) && !__has_include(<filesystem>)
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
 #endif
 
 static const char prog[] =
@@ -338,11 +345,6 @@ namespace w2xc
 
 		const char *dev_name = proc->dev_name;
 		bool bin_avaiable = false;
-
-#if ((defined __linux) && !(defined __ANDROID__)) || defined(_WIN32) || defined(KERN_PROC_PATHNAME)
-#define GENERATE_BINARY
-#endif
-
 
 #ifdef GENERATE_BINARY
 #ifdef __linux
